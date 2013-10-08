@@ -39,7 +39,7 @@ sub import {
                 croak sprintf('Invalid type: "%s"', $typetype)
                         if $typetype ne 'CODE';
                 
-                $hash{$method} = $type->($self, @value );
+                $hash{$method} = $type->($self, @value);
                 next;
             }
 
@@ -77,7 +77,7 @@ sub import {
                 }
             }
             elsif ( $type eq 'Bool' ) {
-                if ( $self->$method() ) {
+                if ( $value ) {
                     $hash{$method} = JSON::true;
                 }
                 else {
