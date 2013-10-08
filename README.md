@@ -64,7 +64,8 @@ the namespace so that may change too.
 
 # Types
 
-The types are designed to be familiar to Moose users. They 
+The types are designed to be familiar to Moose users. They are designed to cast
+method return values to proper JSON.
 
 ## Str
 
