@@ -1,20 +1,26 @@
 # ABSTRACT: Add TO_JSON to your packages without the boilerplate
- 
-use strict;
-use warnings;
 
 package Package::JSONable;
 
+use strict;
+use warnings;
 use Scalar::Util qw(reftype);
 use JSON;
+
+sub _getglob { \*{$_[0]} }
 
 sub import {
     my ( $class, %opts ) = @_;
 
     my ( $target ) = caller;
 
-    no strict 'refs';
-    *{"${target}::TO_JSON"} = sub {
+    my $glob;
+    {
+        no strict 'refs';
+        $glob = \*{"${target}::TO_JSON"}
+    }
+    
+    $$glob = sub {
         my $self = shift;
 
         $self = $target unless $self;
