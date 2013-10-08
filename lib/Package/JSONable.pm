@@ -7,8 +7,6 @@ use warnings;
 use Scalar::Util qw(reftype);
 use JSON;
 
-sub _getglob { \*{$_[0]} }
-
 sub import {
     my ( $class, %opts ) = @_;
 
