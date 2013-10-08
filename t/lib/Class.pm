@@ -9,6 +9,7 @@ use Package::JSONable (
     array_ref => 'ArrayRef',
     hash      => 'HashRef',
     hash_ref  => 'HashRef',
+    null      => 'Str',
     custom    => sub {
         my ( $self, $val ) = @_;
         
@@ -62,6 +63,10 @@ sub hash_ref {
         two   => 2,
         three => 3,
     };
+}
+
+sub null {
+    return;
 }
 
 1;

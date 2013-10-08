@@ -5,6 +5,8 @@ package Package::JSONable;
 use strict;
 use warnings;
 use Scalar::Util qw(reftype);
+use Carp qw(croak);
+use List::MoreUtils qw(none);
 use JSON;
 
 sub import {
@@ -22,11 +24,20 @@ sub import {
         my $self = shift;
 
         $self = $target unless $self;
+        
+        my @types = qw/Str Int Num Bool ArrayRef HashRef/;
 
         my %hash;
         foreach my $method ( keys %opts ) {
-            my $type  = $opts{$method};
-            my $value = $self->$method;
+            my $type      = $opts{$method};
+            my @value     = $self->$method;
+            my ( $value ) = @value;
+            my $reftype   = reftype $value;
+            
+            if (!reftype($type)) {
+                croak sprintf('Invalid type: "%s"', $type)
+                    if none { /^$type$/ } @types;
+            }
             
             if (!defined $value && $type ne 'Bool') {
                 $hash{$method} = $value;
@@ -34,37 +45,32 @@ sub import {
             }
 
             if ( $type eq 'Str' ) {
-                $hash{$method} = $self->$method() . "";
+                $hash{$method} = $value . "";
             }
             elsif ( $type eq 'Int' ) {
-                $hash{$method} = int $self->$method();
+                $hash{$method} = int $value;
             }
             elsif ( $type eq 'Num' ) {
-                my $num = $self->$method();
-                $hash{$method} = $num += 0;
+                $hash{$method} = $value += 0;
             }
-            elsif ( $type eq 'ArrayRef' ) {
-                my $rtype = reftype $self->$method();
-                
-                if ($rtype && $rtype eq 'ARRAY') {
-                    $hash{$method} = $self->$method();
+            elsif ( $type eq 'ArrayRef' ) {                
+                if ($reftype && $reftype eq 'ARRAY') {
+                    $hash{$method} = $value;
                 }
                 else {
-                    $hash{$method} = [ $self->$method() ];
+                    $hash{$method} = [ @value ];
                 }
             }
-            elsif ( $type eq 'HashRef' ) {
-                my $rtype = reftype $self->$method();
-                
-                if ($rtype && $rtype eq 'HASH') {
-                    $hash{$method} = $self->$method();
+            elsif ( $type eq 'HashRef' ) {                
+                if ($reftype && $reftype eq 'HASH') {
+                    $hash{$method} = $value;
                 }
                 else {
-                    $hash{$method} = { $self->$method() };
+                    $hash{$method} = { @value };
                 }
             }
             elsif ( reftype($type) && reftype($type) eq 'CODE' ) {
-                $hash{$method} = $type->($self, $self->$method() );
+                $hash{$method} = $type->($self, @value );
             }
             elsif ( $type eq 'Bool' ) {
                 if ( $self->$method() ) {
@@ -73,9 +79,6 @@ sub import {
                 else {
                     $hash{$method} = JSON::false;
                 }
-            }
-            else {
-                die "Invalid type: $type";
             }
         }
 
@@ -140,7 +143,8 @@ or classes including object systems like Moose.
 
 =head1 Types
 
-The types are designed to be familiar to Moose users. They 
+The types are designed to be familiar to Moose users. They are designed to cast
+method return values to proper JSON.
 
 =head2 Str
 

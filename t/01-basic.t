@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 4;
 use FindBin;
 use JSON;
 
@@ -18,6 +18,7 @@ is_deeply($object->TO_JSON(), {
     array_ref => [1,2,3],
     hash      => {one => 1, two => 2, three => 3},
     hash_ref  => {one => 1, two => 2, three => 3},
+    null      => undef,
     custom    => "hello world",
 }, 'object TO_JSON');
 
@@ -30,8 +31,31 @@ is_deeply(Class::TO_JSON(), {
     array_ref => [1,2,3],
     hash      => {one => 1, two => 2, three => 3},
     hash_ref  => {one => 1, two => 2, three => 3},
+    null      => undef,
     custom    => "hello world",
 }, 'package TO_JSON');
+
+
+# Test multiple attributes sent to code ref
+{
+    {
+        package MultiAttrs;
+        use Test::More;
+        
+        use Package::JSONable (
+            all_attrs => sub {
+                my ( $class, @rest ) = @_;
+                
+                is($class, 'MultiAttrs', 'package name passed');
+                is_deeply(\@rest, [1,2,3], 'got all attributes');
+            },
+        );
+        
+        sub all_attrs { (1,2,3) }
+    }
+    
+    MultiAttrs::TO_JSON;
+}
 
 
 done_testing();
