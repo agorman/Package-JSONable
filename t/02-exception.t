@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::Exception;
 use FindBin;
 use JSON;
@@ -26,6 +26,16 @@ use Class;
     sub real { return }
 }
 
+{
+    package BadTypeRef;
+    
+    use Package::JSONable (
+        real => [1,2,3],
+    );
+    
+    sub real { return }
+}
+
 throws_ok(
     sub {
         BadMethod::TO_JSON;
@@ -40,6 +50,14 @@ throws_ok(
     },
     qr/Invalid type: "Fake"/,
     'invalid type',
+);
+
+throws_ok(
+    sub {
+        BadTypeRef::TO_JSON;
+    },
+    qr/Invalid type: "ARRAY"/,
+    'invalid type ref',
 );
 
 done_testing();

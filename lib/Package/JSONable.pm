@@ -33,11 +33,18 @@ sub import {
             my @value     = $self->$method;
             my ( $value ) = @value;
             my $reftype   = reftype $value;
-            
-            if (!reftype($type)) {
-                croak sprintf('Invalid type: "%s"', $type)
-                    if none { /^$type$/ } @types;
+            my $typetype  = reftype $type;
+
+            if ($typetype) {                
+                croak sprintf('Invalid type: "%s"', $typetype)
+                        if $typetype ne 'CODE';
+                
+                $hash{$method} = $type->($self, @value );
+                next;
             }
+
+            croak sprintf('Invalid type: "%s"', $type)
+                    if none { /^$type$/ } @types;
             
             if (!defined $value && $type ne 'Bool') {
                 $hash{$method} = $value;
@@ -68,9 +75,6 @@ sub import {
                 else {
                     $hash{$method} = { @value };
                 }
-            }
-            elsif ( reftype($type) && reftype($type) eq 'CODE' ) {
-                $hash{$method} = $type->($self, @value );
             }
             elsif ( $type eq 'Bool' ) {
                 if ( $self->$method() ) {
