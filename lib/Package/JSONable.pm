@@ -13,14 +13,8 @@ sub import {
     my ( $class, %opts ) = @_;
 
     my ( $target ) = caller;
-
-    my $glob;
-    {
-        no strict 'refs';
-        $glob = \*{"${target}::TO_JSON"}
-    }
     
-    $$glob = sub {
+    my $to_json = sub {
         my $self = shift;
 
         $self = $target unless $self;
@@ -88,6 +82,9 @@ sub import {
 
         return \%hash;
     };
+    
+    no strict 'refs';
+    *{"${target}::TO_JSON"} = $to_json;
 }
 
 1;
