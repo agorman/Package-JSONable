@@ -1,5 +1,4 @@
 # ABSTRACT: Add TO_JSON to your packages without the boilerplate
-
 package Package::JSONable;
 
 use strict;
@@ -7,17 +6,19 @@ use warnings;
 use Scalar::Util qw(reftype);
 use Carp qw(croak);
 use List::MoreUtils qw(none);
-use JSON;
+use JSON ();
 
 sub import {
-    my ( $class, %opts ) = @_;
+    my ( $class, %import_opts ) = @_;
 
     my ( $target ) = caller;
     
     my $to_json = sub {
-        my $self = shift;
+        my ( $self, %opts ) = @_;
 
         $self = $target unless $self;
+        
+        %opts = %import_opts unless %opts;
         
         my @types = qw/Str Int Num Bool ArrayRef HashRef/;
 
