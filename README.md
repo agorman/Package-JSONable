@@ -41,6 +41,7 @@ version 0.001
 
 later...
 
+    use JSON qw(encode_json);
     print encode_json(MyModule->new);
 
 prints...
@@ -53,19 +54,45 @@ prints...
 
 # DESCRIPTION
 
-This module removes the boilderplate of writing TO\_JSON functions and methods
-for your packages and classes. This module is designed to work with packages
-or classes including object systems like Moose.
+This module adds a TO\_JSON method directly to the calling class or object. This
+module is designed to work with packages or classes including object systems
+like Moose.
 
-# EXPERIMENTAL
+## Advanced Usage
 
-For now this module should be considered experimental. I'm also not huge fan of
-the namespace so that may change too.
+The TO\_JSON method will take an optional hash to overwrite the output. For
+example you may want to return different JSON for different cases.
+
+    around TO_JSON => sub {
+        my ( $orig, $self ) = @_;
+        
+
+        if ($self->different_json) {
+            
+
+            # Return a different set of metadata with a new spec
+            return $orig->(self, (
+                foo => 'Str',
+                bar => 'Int',
+                baz => 'Num',
+            )); 
+        }
+        
+
+        # Return JSON with the originally defined spec
+        return $orig->($self);
+    }
+
+# WHY
+
+I got tired of thinking about how variables need to be cast to get proper JSON
+output. I just wanted a simple way to make my objects serialize to JSON.
 
 # Types
 
-The types are designed to be familiar to Moose users. They are designed to cast
-method return values to proper JSON.
+The types are designed to be familiar to Moose users, though they aren't
+related in any other way. They are designed to cast method or function return
+values to proper JSON.
 
 ## Str
 
