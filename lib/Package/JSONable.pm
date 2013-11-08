@@ -92,11 +92,6 @@ sub import {
 
 __END__
 
-=head1 EXPERIMENTAL
-
-For now this module should be considered experimental. I'm also not huge fan of
-the namespace so that may change too.
-
 =head1 SYNOPSIS
 
     package MyModule;
@@ -127,6 +122,7 @@ the namespace so that may change too.
     
 later...
 
+    use JSON qw(encode_json);
     print encode_json(MyModule->new);
     
 prints...
@@ -137,16 +133,44 @@ prints...
         "baz":true
     }
 
+=head1 WHY
+
+I got tired of thinking about how variables need to be cast to get proper JSON
+output. I just wanted a simple way to make my objects serialize to JSON.
+
 =head1 DESCRIPTION
 
-This module removes the boilderplate of writing TO_JSON functions and methods
-for your packages and classes. This module is designed to work with packages
-or classes including object systems like Moose.
+This module adds a TO_JSON method directly to the calling class or object. This
+module is designed to work with packages or classes including object systems
+like Moose.
+
+=head2 Advanced Usage
+
+The TO_JSON method will take an optional hash to overwrite the output. For
+example you may want to return different JSON for different cases.
+
+    around TO_JSON => sub {
+        my ( $orig, $self ) = @_;
+        
+        if ($self->different_json) {
+            
+            # Return a different set of metadata with a new spec
+            return $orig->(self, (
+                foo => 'Str',
+                bar => 'Int',
+                baz => 'Num',
+            )); 
+        }
+        
+        # Return JSON with the originally defined spec
+        return $orig->($self);
+    }
 
 =head1 Types
 
-The types are designed to be familiar to Moose users. They are designed to cast
-method return values to proper JSON.
+The types are designed to be familiar to Moose users, though they aren't
+related in any other way. They are designed to cast method or function return
+values to proper JSON.
 
 =head2 Str
 
@@ -178,4 +202,3 @@ method return values to proper JSON.
 =head2 CODE
 
     Passes the invocant to the sub along with the given method's return value. 
-    
